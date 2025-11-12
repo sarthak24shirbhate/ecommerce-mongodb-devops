@@ -1,11 +1,14 @@
 version: '3.8'
 services:
-  mongo1:
-    image: mongo:6.0
-    container_name: mongo1
-    command: ["mongod","--replSet","rs0","--bind_ip_all"]
+  backend:
+    build:
+      context: .
     volumes:
-      - ./data/mongo1:/data/db
+      - ./:/app           # mount source for live edit
+      - /app/node_modules # avoid overwriting node_modules from container
+    command: npm run dev  # run nodemon in dev
+    environment:
+      NODE_ENV: development
+      MONGO_URI: mongodb://mongo:27017/ecommerce
     ports:
-      - "27017:27017"
-
+      - "5000:5000"
