@@ -225,4 +225,280 @@ git init
 git remote add origin https://github.com/yourusername/ecommerce-mongodb-devops.git
 
 
-You’ll use this later for CI/CD.
+You’ll use this later for CI/CD.🧩 Milestone 1 — Backend Application Development
+
+Objective: Create a RESTful API backend for our “E-commerce Catalog Management System” that connects to MongoDB.
+Stack: Node.js + Express.js + MongoDB (Mongoose ODM)
+
+⚙️ PHASE 1 — Project Setup
+🧠 Step 1: Create a project folder
+cd ~
+mkdir ecommerce-backend
+cd ecommerce-backend
+
+🧰 Step 2: Initialize Node.js project
+
+This will create a package.json file that keeps track of dependencies and scripts.
+
+npm init -y
+
+
+✅ This creates a file:
+
+package.json
+
+
+Open it:
+
+code .
+
+
+You’ll see a JSON structure — it’s like metadata for your Node project.
+
+📦 Step 3: Install Required Packages
+Backend Core Dependencies:
+npm install express mongoose dotenv cors
+
+Dev Dependencies (for nodemon auto-reload):
+npm install --save-dev nodemon
+
+Package	Purpose
+express	Web server framework for creating APIs
+mongoose	ODM (Object Data Modeling) for MongoDB
+dotenv	Loads environment variables from .env file
+cors	Enables cross-origin requests
+nodemon	Automatically restarts server when files change
+⚙️ Step 4: Update package.json scripts
+
+In your package.json, add this inside the "scripts" section:
+
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js"
+}
+
+
+This lets you run:
+
+npm run start → production mode
+
+npm run dev → development mode (auto-reloads)
+
+🧱 PHASE 2 — Folder Structure
+
+Create this structure:
+
+ecommerce-backend/
+│
+├── server.js
+├── .env
+├── package.json
+│
+├── config/
+│   └── db.js
+│
+├── models/
+│   └── Product.js
+│
+├── routes/
+│   └── productRoutes.js
+│
+└── controllers/
+    └── productController.js
+
+📡 PHASE 3 — Connect to MongoDB
+🧩 Step 5: Create DB Configuration
+
+Create file:
+config/db.js
+
+import mongoose from "mongoose";
+
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`❌ Error: ${error.message}`);
+    process.exit(1);
+  }
+};
+
+export default connectDB;
+
+🔐 Step 6: Setup Environment Variables
+
+Create file:
+.env
+
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/ecommerce
+
+🚀 Step 7: Create Server Entry File
+
+File: server.js
+
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import productRoutes from "./routes/productRoutes.js";
+
+dotenv.config();  // Load .env
+connectDB();       // Connect to MongoDB
+
+const app = express();
+app.use(cors());
+app.use(express.json()); // Parse JSON body
+
+app.get("/", (req, res) => {
+  res.send("E-commerce Backend is running...");
+});
+
+app.use("/api/products", productRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+🧩 PHASE 4 — Define MongoDB Model
+🧱 Step 8: Create Product model
+
+File: models/Product.js
+
+import mongoose from "mongoose";
+
+const productSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Product name is required"]
+  },
+  price: {
+    type: Number,
+    required: [true, "Product price is required"]
+  },
+  category: {
+    type: String,
+    required: true
+  },
+  inStock: {
+    type: Boolean,
+    default: true
+  }
+}, {
+  timestamps: true
+});
+
+const Product = mongoose.model("Product", productSchema);
+export default Product;
+
+🧠 PHASE 5 — Create Controllers
+Step 9: Create controllers/productController.js
+import Product from "../models/Product.js";
+
+// @desc Get all products
+// @route GET /api/products
+export const getProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc Create new product
+// @route POST /api/products
+export const createProduct = async (req, res) => {
+  const { name, price, category } = req.body;
+
+  try {
+    const newProduct = new Product({ name, price, category });
+    await newProduct.save();
+    res.status(201).json(newProduct);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+🚏 PHASE 6 — Create Routes
+Step 10: Create routes/productRoutes.js
+import express from "express";
+import { getProducts, createProduct } from "../controllers/productController.js";
+
+const router = express.Router();
+
+router.get("/", getProducts);
+router.post("/", createProduct);
+
+export default router;
+
+🧪 PHASE 7 — Test the Backend
+Step 11: Start Server
+npm run dev
+
+
+✅ Output:
+
+✅ MongoDB Connected: localhost
+🚀 Server running on port 5000
+
+Step 12: Test with Postman
+1️⃣ GET all products:
+
+Method: GET
+
+URL: http://localhost:5000/api/products
+
+Response:
+
+[]
+
+2️⃣ POST new product:
+
+Method: POST
+
+URL: http://localhost:5000/api/products
+
+Body → JSON:
+
+{
+  "name": "Wireless Mouse",
+  "price": 799,
+  "category": "Electronics"
+}
+
+
+Response:
+
+{
+  "_id": "67447a2434c912...",
+  "name": "Wireless Mouse",
+  "price": 799,
+  "category": "Electronics",
+  "inStock": true,
+  "createdAt": "2025-11-12T08:30:00Z"
+}
+
+3️⃣ GET again:
+
+Now it should return the product you added.
+
+🧾 PHASE 8 — Version Control
+Step 13: Commit and Push
+git add .
+git commit -m "Initial backend setup with MongoDB integration"
+git push origin main
+
+✅ Milestone 1 Summary
+
+You’ve now built a fully functional backend service that:
+
+Uses Node.js + Express to serve APIs
+
+Stores and retrieves data from MongoDB
+
+Has modular code (routes, controllers, models)
+
+Runs in dev mode via nodemon
+
+
